@@ -50,6 +50,8 @@ Import the repository into one Vercel project. Select the repository root contai
 
 The supplied `vercel.json` sets the build options, a 30-second API duration and SPA routing excluding `/api`. Do not replace this with a rewrite that sends API requests to `index.html`.
 
+If `npm ci` reports missing `@emnapi/core` or `@emnapi/wasi-threads`, use the repaired lockfile from this repository. Commit and push `package-lock.json`, then deploy that new commit. Redeploying an older commit will reuse its incomplete lockfile. Keep the install command as `npm ci`; peer-dependency warnings are separate from the fatal lockfile validation error. Regenerate dependency locks in a clean directory and validate a real Linux clean install before deploying.
+
 Add these in Vercel Project Settings → Environment Variables, selecting the correct Production/Preview environments:
 
 | Variable | Required | Value |
