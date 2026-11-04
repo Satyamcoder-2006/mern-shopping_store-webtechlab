@@ -1,0 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&display=swap');
+@import "tailwindcss";
+@import "./styles/base.css";
+@import "./styles/commerce.css";
+@import "./styles/responsive.css";
+
+@import "./styles/community.css";

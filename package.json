@@ -1,0 +1,58 @@
+{
+  "name": "forme-clothing-store",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch server.ts",
+    "start": "tsx scripts/start-production.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "clean": "node scripts/clean.mjs",
+    "lint": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test backend/*.test.ts src/utils/listen.test.ts shared/password.test.cjs",
+    "test:atlas": "node scripts/verify-commerce.mjs",
+    "admin:setup": "node scripts/setup-admin.mjs",
+    "catalog:expand": "node --experimental-strip-types scripts/expand-catalog.mjs",
+    "audit:files": "node scripts/audit-repository.mjs",
+    "db:check": "node scripts/check-database.mjs"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "express-validator": "^7.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.546.0",
+    "mongoose": "^9.11.4",
+    "motion": "^12.23.24",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "react-router-dom": "^7.18.5",
+    "sharp": "^0.35.5",
+    "vite": "^8.3.0",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.4.21",
+    "esbuild": "0.28.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
+  },
+  "description": "FORME: a MERN clothing store with inventory, community outfit voting, reviews and secure account management.",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Satyamcoder-2006/mern-shopping_store-webtechlab.git"
+  }
+}

@@ -1,0 +1,310 @@
+[
+  {
+    "productId": "FRM-C101",
+    "asset": "/catalog/campus-101.webp",
+    "source": "Fake Store API",
+    "sourceURL": "https://fakestoreapi.com/img/71-3HjGNDUL._AC_SY879._SX._UX._SY._UY_t.png",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C102",
+    "asset": "/catalog/campus-102.webp",
+    "source": "Fake Store API",
+    "sourceURL": "https://fakestoreapi.com/img/71li-ujtlUL._AC_UX679_t.png",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C103",
+    "asset": "/catalog/campus-103.webp",
+    "source": "Fake Store API",
+    "sourceURL": "https://fakestoreapi.com/img/71YXzeOuslL._AC_UY879_t.png",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C104",
+    "asset": "/catalog/campus-104.webp",
+    "source": "Fake Store API",
+    "sourceURL": "https://fakestoreapi.com/img/51Y5NI-I5jL._AC_UX679_t.png",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C105",
+    "asset": "/catalog/campus-105.webp",
+    "source": "Fake Store API",
+    "sourceURL": "https://fakestoreapi.com/img/81XH0e8fefL._AC_UY879_t.png",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C106",
+    "asset": "/catalog/campus-106.webp",
+    "source": "Fake Store API",
+    "sourceURL": "https://fakestoreapi.com/img/71HblAHs5xL._AC_UY879_-2t.png",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C107",
+    "asset": "/catalog/campus-107.webp",
+    "source": "Fake Store API",
+    "sourceURL": "https://fakestoreapi.com/img/71z3kpMAYsL._AC_UY879_t.png",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C108",
+    "asset": "/catalog/campus-108.webp",
+    "source": "Fake Store API",
+    "sourceURL": "https://fakestoreapi.com/img/51eg55uWmdL._AC_UX679_t.png",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C109",
+    "asset": "/catalog/campus-109.webp",
+    "source": "DummyJSON",
+    "sourceURL": "https://cdn.dummyjson.com/product-images/mens-shirts/blue-&-black-check-shirt/1.webp",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C110",
+    "asset": "/catalog/campus-110.webp",
+    "source": "DummyJSON",
+    "sourceURL": "https://cdn.dummyjson.com/product-images/mens-shirts/gigabyte-aorus-men-tshirt/1.webp",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C111",
+    "asset": "/catalog/campus-111.webp",
+    "source": "DummyJSON",
+    "sourceURL": "https://cdn.dummyjson.com/product-images/mens-shirts/man-plaid-shirt/1.webp",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C112",
+    "asset": "/catalog/campus-112.webp",
+    "source": "DummyJSON",
+    "sourceURL": "https://cdn.dummyjson.com/product-images/mens-shirts/man-short-sleeve-shirt/1.webp",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C113",
+    "asset": "/catalog/campus-113.webp",
+    "source": "DummyJSON",
+    "sourceURL": "https://cdn.dummyjson.com/product-images/mens-shirts/men-check-shirt/1.webp",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C114",
+    "asset": "/catalog/campus-114.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1562157873-818bc0726f68?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C115",
+    "asset": "/catalog/campus-115.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C116",
+    "asset": "/catalog/campus-116.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C117",
+    "asset": "/catalog/campus-117.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1578681994506-b8f463449011?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C118",
+    "asset": "/catalog/campus-118.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C119",
+    "asset": "/catalog/campus-119.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C120",
+    "asset": "/catalog/campus-120.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1622445275463-afa2ab738c34?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C121",
+    "asset": "/catalog/campus-121.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1618354691229-88d47f285158?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C122",
+    "asset": "/catalog/campus-122.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C123",
+    "asset": "/catalog/campus-123.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C124",
+    "asset": "/catalog/campus-124.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1603252109303-2751441dd157?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C125",
+    "asset": "/catalog/campus-125.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C126",
+    "asset": "/catalog/campus-126.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1544022613-e87ca75a784a?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C127",
+    "asset": "/catalog/campus-127.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C128",
+    "asset": "/catalog/campus-128.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C129",
+    "asset": "/catalog/campus-129.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C130",
+    "asset": "/catalog/campus-130.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C131",
+    "asset": "/catalog/campus-131.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C132",
+    "asset": "/catalog/campus-132.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C133",
+    "asset": "/catalog/campus-133.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1582552938357-32b906df40cb?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C134",
+    "asset": "/catalog/campus-134.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C135",
+    "asset": "/catalog/campus-135.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-C136",
+    "asset": "/catalog/campus-136.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=max&w=1000&q=82",
+    "review": "Visually inspected for demo appropriateness. Product specifications and prices are illustrative demo data."
+  },
+  {
+    "productId": "FRM-001",
+    "asset": "/catalog/base-001.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=max&w=1000&q=82",
+    "review": "Existing demonstration product image corrected and locally cached."
+  },
+  {
+    "productId": "FRM-002",
+    "asset": "/catalog/base-002.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=max&w=1000&q=82",
+    "review": "Existing demonstration product image corrected and locally cached."
+  },
+  {
+    "productId": "FRM-003",
+    "asset": "/catalog/base-003.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=max&w=1000&q=82",
+    "review": "Existing demonstration product image corrected and locally cached."
+  },
+  {
+    "productId": "FRM-004",
+    "asset": "/catalog/base-004.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1544923246-77307dd654cb",
+    "review": "Existing demonstration product image corrected and locally cached."
+  },
+  {
+    "productId": "FRM-005",
+    "asset": "/catalog/base-005.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=max&w=1000&q=82",
+    "review": "Existing demonstration product image corrected and locally cached."
+  },
+  {
+    "productId": "FRM-006",
+    "asset": "/catalog/base-006.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=max&w=1000&q=82",
+    "review": "Existing demonstration product image corrected and locally cached."
+  },
+  {
+    "productId": "FRM-007",
+    "asset": "/catalog/base-007.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=max&w=1000&q=82",
+    "review": "Existing demonstration product image corrected and locally cached."
+  },
+  {
+    "productId": "FRM-008",
+    "asset": "/catalog/base-008.webp",
+    "source": "Unsplash",
+    "sourceURL": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=max&w=1000&q=82",
+    "review": "Existing demonstration product image corrected and locally cached."
+  }
+]
