@@ -20,6 +20,7 @@ import Community from './store/Community';
 import Moderation from './store/Moderation';
 
 import { Empty } from './store/ui';
+import { useScrollReveals } from './utils/useScrollReveals';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
 
@@ -34,6 +35,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { fai
 function Pages() {
 
   const location = useLocation();
+  useScrollReveals();
 
   useEffect(() => { if (!location.hash) window.scrollTo({ top: 0, behavior: 'instant' }); }, [location.pathname]);
 
