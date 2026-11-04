@@ -1,3 +1,4 @@
+import { verifyNeonToken, syncNeonUser } from './neon-auth.ts';
 import { rejectOperators, signupRules, loginRules } from './validation.ts';
 import { communityRouter, mediaUploadRouter } from './community.ts';
 import { eraseAccount } from './privacy.ts';
@@ -9,12 +10,20 @@ import { HttpError, ensure, email, password, text, number, productInput, couponI
 import { authenticate, adminOnly, csrf, csrfFor, clearSession, issueSession, publicUser, rateLimit, sameOrigin, securityHeaders } from './security.ts';
 import { placeOrder, quoteCart, changeOrderStatus } from './commerce.ts';
 import passwordUtils from '../shared/password.cjs';
-import { databaseReady } from './database.ts';
+import { databaseReady, connectDatabase } from './database.ts';
 const { hashPassword, verifyPassword } = passwordUtils;
 export const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', process.env.VERCEL ? 1 : false);
 app.use(securityHeaders);
-app.use('/api', sameOrigin, rateLimit(300, 60000, 'api'));
+app.use('/api', sameOrigin);
+app.use('/api', (_req, _res, next) => {
+  connectDatabase().then(() => next()).catch(error => {
+    console.error('Database connection failed:', error.name);
+    next(new HttpError(503, 'The store database is temporarily unavailable. Please try again shortly.'));
+  });
+});
+app.use('/api', rateLimit(300, 60000, 'api'));
 app.use('/api/media', mediaUploadRouter);
 app.use('/api', express.json({ limit: '100kb' }), rejectOperators);
 
@@ -56,6 +65,15 @@ app.post('/api/login', authLimit, ...loginRules, route(async (req, res) => {
   ensure(valid, 'Email or password is incorrect.', 401);
   res.json({ message: `Welcome back, ${user.username}.`, ...await issueSession(res, user) });
 }));
+app.post('/api/auth/neon', authLimit, route(async (req, res) => {
+  const identity = await verifyNeonToken(req.body.token);
+  // A valid local session is required before connecting an existing email.
+  await new Promise<void>(resolve => { authenticate(req, res, () => resolve()); });
+  const current = who(req);
+  if (current) ensure(current.emailId === identity.email, 'Use the same email as your FORME account to connect Google.', 409);
+  const user = await syncNeonUser(identity, current ? String(current._id) : undefined);
+  res.json({ message: 'Welcome to FORME.', ...await issueSession(res, user, current ? (req as any).sessionId : undefined) });
+}));
 app.get('/api/session', authenticate, route(async (req, res) => res.json({ user: publicUser(who(req)), csrfToken: csrfFor((req as any).sessionToken) })));
 app.post('/api/logout', authenticate, csrf, route(async (req, res) => {
   await UserModel.updateOne({ _id: who(req)._id }, { $inc: { tokenVersion: 1 }, $set: { sessions: [] } });
@@ -86,7 +104,10 @@ app.delete(['/api/users', '/api/users/me'], authenticate, csrf, authLimit, route
   const user: any = await UserModel.findById(who(req)._id).select('+password');
   ensure(!req.query.emailId || req.query.emailId === user.emailId, 'You can only delete your own account.', 403);
   ensure(user.role !== 'admin', 'Admin accounts cannot be deleted through the storefront.', 403);
-  ensure(await verifyPassword(req.body.currentPassword, user.password), 'Your password is incorrect.', 403);
+  if (user.authProvider === 'neon') {
+    const identity = await verifyNeonToken(req.body.neonToken);
+    ensure(identity.id === user.neonAuthId && identity.issuer === user.neonIssuer, 'Sign in with your connected Google account.', 403);
+  } else ensure(await verifyPassword(req.body.currentPassword, user.password), 'Your password is incorrect.', 403);
   await eraseAccount(user._id);
   clearSession(res); res.json({ message: 'Your account has been deleted.' });
 }));
@@ -104,7 +125,7 @@ app.get('/api/admin/dashboard', route(async (_req, res) => {
     OrderModel.countDocuments(), UserModel.countDocuments({ role: { $ne: 'admin' } }),
     ProductModel.find({ active: true, quantity: { $lte: 5 } }).lean(), ProductModel.countDocuments({ active: true }),
     OrderModel.find().sort({ createdAt: -1 }).limit(6).lean(),
-    OrderModel.aggregate([{ $match: { status: 'Delivered', updatedAt: { $gte: new Date(Date.now() - 7 * 86400000) } } },
+    OrderModel.aggregate([{ $match: { status: 'Delivered', paymentStatus: 'collected', updatedAt: { $gte: new Date(Date.now() - 7 * 86400000) } } },
       { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$updatedAt', timezone: 'Asia/Kolkata' } }, total: { $sum: '$total' } } }, { $sort: { _id: 1 } }]),
   ]);
   res.json({ earnings: earnings[0]?.total || 0, booked: booked[0]?.total || 0, totalOrders, customers, lowStock, products, recentOrders, trend });
@@ -117,11 +138,11 @@ app.post('/api/admin/products', csrf, route(async (req, res) => {
 app.put('/api/admin/products/:id', csrf, route(async (req, res) => {
   const data = productInput(req.body);
   const revision = number(req.body.revision, 'Inventory revision');
-  const product = await ProductModel.findOneAndUpdate({ productId: String(req.params.id), revision }, { $set: data, ...(!data.originalPrice ? { $unset: { originalPrice: 1 } } : {}), $inc: { revision: 1 } }, { new: true, runValidators: true });
+  const product = await ProductModel.findOneAndUpdate({ productId: String(req.params.id), revision }, { $set: data, ...(!data.originalPrice ? { $unset: { originalPrice: 1 } } : {}), $inc: { revision: 1 } }, { returnDocument: 'after', runValidators: true });
   ensure(product, 'Stock or product details changed. Reload before saving again.', 409); res.json(product);
 }));
 app.delete('/api/admin/products/:id', csrf, route(async (req, res) => {
-  const product = await ProductModel.findOneAndUpdate({ productId: String(req.params.id), revision: number(req.body.revision, 'Revision') }, { $set: { active: false }, $inc: { revision: 1 } }, { new: true });
+  const product = await ProductModel.findOneAndUpdate({ productId: String(req.params.id), revision: number(req.body.revision, 'Revision') }, { $set: { active: false }, $inc: { revision: 1 } }, { returnDocument: 'after' });
   ensure(product, 'Product changed. Please reload and try again.', 409); res.json({ message: 'Product archived. Existing order records are preserved.' });
 }));
 app.get('/api/admin/orders', route(async (_req, res) => res.json(await OrderModel.find().sort({ createdAt: -1 }).limit(500).lean())));
@@ -140,7 +161,7 @@ app.post('/api/admin/coupons', csrf, route(async (req, res) => res.status(201).j
 app.patch('/api/admin/coupons/:id', csrf, route(async (req, res) => {
   ensure(typeof req.body.active === 'boolean', 'Choose an active state.');
   ensure(mongoose.isValidObjectId(req.params.id), 'Coupon not found.', 404);
-  const coupon = await CouponModel.findByIdAndUpdate(req.params.id, { $set: { active: req.body.active } }, { new: true });
+  const coupon = await CouponModel.findByIdAndUpdate(req.params.id, { $set: { active: req.body.active } }, { returnDocument: 'after' });
   ensure(coupon, 'Coupon not found.', 404); res.json(coupon);
 }));
 app.use('/api', (_req, _res, next) => next(new HttpError(404, 'API endpoint not found.')));

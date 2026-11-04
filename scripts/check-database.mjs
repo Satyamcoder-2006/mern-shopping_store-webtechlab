@@ -13,7 +13,7 @@ try {
   console.log('Atlas host: ' + uri.hostname);
   if (uri.protocol === 'mongodb+srv:') console.log('DNS server records: ' + (await dns.resolveSrv('_mongodb._tcp.' + uri.hostname)).length);
   timeout = setTimeout(() => { console.error('Connection timed out. Check Atlas Network Access and your current public IP.'); process.exit(1); }, 25000);
-  await mongoose.connect(process.env.MONGO_URI, { dbName: 'shopDB', serverSelectionTimeoutMS: 12000, connectTimeoutMS: 8000 });
+  await mongoose.connect(process.env.MONGO_URI, { dbName: process.env.MONGO_DB_NAME || 'shopDB', serverSelectionTimeoutMS: 12000, connectTimeoutMS: 8000 });
   await mongoose.connection.db.command({ ping: 1 });
   console.log('PASS: MongoDB Atlas connected and ping succeeded.');
 } catch (error) {

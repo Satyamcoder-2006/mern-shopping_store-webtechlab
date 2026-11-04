@@ -1,12 +1,12 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import dotenv from 'dotenv';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const files = [...new Set(execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean))];
 const privateNames = /(^|\/)(node_modules|dist|build|coverage|uploads|tmp|output|shopping-app|\.aistudio|\.pytest_cache)(\/|$)|(^|\/)\.admin-|(^|\/)\.env($|\.)/;
-const environment = existsSync(path.join(root, '.env')) ? dotenv.parse(readFileSync(path.join(root, '.env'))) : {};
+const environment = Object.assign({}, ...readdirSync(root).filter(name => /^\.env(?:$|\.)/.test(name) && name !== '.env.example' && statSync(path.join(root, name)).isFile()).map(name => dotenv.parse(readFileSync(path.join(root, name)))));
 const secrets = Object.entries(environment).filter(([key, value]) => /URI|SECRET|TOKEN|PASSWORD|KEY/.test(key) && value.length >= 16 && !value.includes('<') && !value.startsWith('replace-')).map(([, value]) => value);
 const failures = [];
 for (const file of files) {

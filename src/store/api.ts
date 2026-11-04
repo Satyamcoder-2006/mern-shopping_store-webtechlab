@@ -13,7 +13,10 @@ export async function api<T = any>(url: string, method = 'GET', body?: unknown):
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     if (response.status === 401 && !['/api/login', '/api/session'].includes(url)) window.dispatchEvent(new Event('forme:expired'));
-    throw new ApiError(data.message || 'Something went wrong. Please try again.', response.status);
+    const message = data.message === 'API endpoint not found.'
+      ? 'This feature is temporarily unavailable. Please refresh the page and try again.'
+      : data.message || 'Something went wrong. Please try again.';
+    throw new ApiError(message, response.status);
   }
   if (data.csrfToken) setCsrf(data.csrfToken);
   return data;

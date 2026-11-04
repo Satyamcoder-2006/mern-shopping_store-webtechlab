@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+.admin-*
+node_modules
+uploads
+dist
+coverage
+.git
+output
+tmp
+*.log

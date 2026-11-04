@@ -20,12 +20,12 @@ async function startServer() {
       app.get('*', (_req, res) => res.sendFile(path.join(root, 'dist/index.html')));
     } else {
       const { createServer: createViteServer } = await import('vite');
-      vite = await createViteServer({ server: { middlewareMode: true,
+      vite = await createViteServer({ configLoader: 'runner', server: { middlewareMode: true,
         hmr: process.env.DISABLE_HMR !== 'true',
         ws: process.env.DISABLE_HMR === 'true' ? false : { server: httpServer } }, appType: 'spa' });
       app.use(vite.middlewares);
     }
-    const port = await listenOnAvailablePort(httpServer, Number(process.env.PORT) || 3000);
+    const port = await listenOnAvailablePort(httpServer, Number(process.env.PORT) || 3000, 1);
     console.log(`Server listening on port ${port}`);
     console.log(`FORME is ready at http://localhost:${port}`);
     console.log('Connecting to MongoDB Atlas…');

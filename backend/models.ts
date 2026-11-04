@@ -4,13 +4,17 @@ const integer = (value: number) => Number.isSafeInteger(value);
 const userSchema = new Schema({
   username: { type: String, required: true, trim: true, maxlength: 80 },
   emailId: { type: String, required: true, unique: true, trim: true, lowercase: true },
-  age: { type: Number, required: true, min: 1, max: 120 },
-  password: { type: String, required: true, select: false },
+  age: { type: Number, required: function (this: any): boolean { return !this.neonAuthId; }, min: 1, max: 120 },
+  password: { type: String, required: function (this: any): boolean { return this.authProvider !== 'neon'; }, select: false },
+  authProvider: { type: String, enum: ['local', 'neon'], default: 'local' },
+  neonAuthId: String,
+  neonIssuer: String,
   role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
   tokenVersion: { type: Number, default: 0 },
   writeRevision: { type: Number, default: 0 },
   sessions: [{ _id: false, id: String, createdAt: Date, expiresAt: Date }],
 }, { timestamps: true });
+userSchema.index({ neonIssuer: 1, neonAuthId: 1 }, { unique: true, partialFilterExpression: { neonIssuer: { $type: 'string' }, neonAuthId: { $type: 'string' } } });
 const productSchema = new Schema({
   productId: { type: String, required: true, unique: true },
   productName: { type: String, required: true, maxlength: 120 },
@@ -60,8 +64,11 @@ const mediaSchema = new Schema({
   mediaId: { type: String, required: true, unique: true },
   ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   attachedTo: { type: String, default: '', index: true },
-  bytes: Number,
+  bytes: { type: Number, required: true, min: 1, max: 250 * 1024, validate: integer },
+  contentType: { type: String, enum: ['image/webp'], default: 'image/webp', required: true },
+  data: { type: Buffer, required: true, select: false, validate: (value: Buffer) => value.length > 0 && value.length <= 250 * 1024 },
 }, { timestamps: true });
+mediaSchema.index({ createdAt: 1 }, { expireAfterSeconds: 3600, partialFilterExpression: { attachedTo: '' }, name: 'expire_unpublished_media' });
 const reviewSchema = new Schema({
   productId: { type: String, required: true, index: true },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -88,3 +95,7 @@ export const MediaModel = mongoose.models.Media || mongoose.model('Media', media
 export const ReviewModel = mongoose.models.Review || mongoose.model('Review', reviewSchema, 'reviews');
 export const FaceoffModel = mongoose.models.Faceoff || mongoose.model('Faceoff', faceoffSchema, 'faceoffs');
 export const VoteModel = mongoose.models.Vote || mongoose.model('Vote', voteSchema, 'votes');
+
+const rateLimitSchema = new Schema({ _id: String, count: { type: Number, default: 0 }, expiresAt: { type: Date, required: true } }, { versionKey: false });
+rateLimitSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+export const RateLimitModel = mongoose.models.RateLimit || mongoose.model('RateLimit', rateLimitSchema, 'rate_limits');

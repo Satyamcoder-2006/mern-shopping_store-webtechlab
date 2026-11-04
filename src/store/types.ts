@@ -4,7 +4,7 @@ export interface Product {
   material: string; care: string; badge: string; featured: boolean; active: boolean; quantity: number;
   variants: { size: string; stock: number }[]; revision: number;
 }
-export interface Customer { id: string; username: string; emailId: string; age: number; role: 'customer' | 'admin' }
+export interface Customer { id: string; username: string; emailId: string; age?: number; hasPassword?: boolean; googleLinked?: boolean; role: 'customer' | 'admin' }
 export interface BagItem { productId: string; size: string; quantity: number }
 export interface Order {
   orderId: string; customerName: string; emailId: string; createdAt: string; status: string; paymentStatus: string;

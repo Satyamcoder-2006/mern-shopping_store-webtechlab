@@ -20,3 +20,13 @@ export const validate = (req: Request, _res: Response, next: NextFunction) => {
 };
 export const signupRules = [body('username').isString().bail().trim().isLength({ min: 2, max: 80 }).withMessage('Name must be 2–80 characters'), body('emailId').isString().bail().isEmail().isLength({ max: 254 }), body('age').isInt({ min: 1, max: 120 }), body('password').isString().bail().isLength({ min: 8, max: 128 }), validate];
 export const loginRules = [body('emailId').isString().bail().isEmail().isLength({ max: 254 }), body('password').isString().bail().isLength({ min: 1, max: 128 }), validate];
+
+export const faceoffRules = [
+  body('title').isString().bail().trim().isLength({ min: 3, max: 140 }),
+  body('caption').optional().isString().isLength({ max: 500 }),
+  body('publicConsent').equals('true').withMessage('Confirm that your photos will be public'),
+  body('looks').isArray({ min: 1, max: 3 }).withMessage('Add between 1 and 3 outfit photos.'),
+  body('looks.*.image').isString().matches(/^\/api\/media\/[a-f0-9-]{36}$/),
+  body('looks.*.label').isString().bail().trim().isLength({ min: 1, max: 40 }),
+  validate,
+];

@@ -6,13 +6,25 @@ export const SIZE_CHART = [
   { size: 'L', chest: [104, 109], waist: [89, 94], shoulder: [44, 46] },
   { size: 'XL', chest: [112, 117], waist: [97, 102], shoulder: [46, 48] },
 ];
+export const MEASUREMENT_FIELDS = [
+  { key: 'height', label: 'Height', unit: 'cm', min: 120, max: 230, optional: false, placeholder: '175' },
+  { key: 'weight', label: 'Weight', unit: 'kg', min: 30, max: 250, optional: false, placeholder: '70' },
+  { key: 'waist', label: 'Waist circumference', unit: 'cm', min: 45, max: 180, optional: false, placeholder: '83' },
+  { key: 'shoulder', label: 'Shoulder width, point to point', unit: 'cm', min: 25, max: 70, optional: false, placeholder: '43' },
+  { key: 'chest', label: 'Chest / bust circumference', unit: 'cm', min: 60, max: 180, optional: true, placeholder: '100' },
+  { key: 'hip', label: 'Hip circumference', unit: 'cm', min: 60, max: 190, optional: true, placeholder: '100' },
+] as const;
+export const measurementMessage = (field: typeof MEASUREMENT_FIELDS[number]) =>
+  `${field.label} must be between ${field.min} and ${field.max} ${field.unit}.`;
+
 export type Measurements = { height: number; weight: number; waist: number; shoulder: number; chest?: number; hip?: number; fit: 'regular' | 'relaxed' };
 export function recommendSize(input: Measurements, category: string, variants: {size: string; stock: number}[] = []) {
-  const bounds: Record<string, number[]> = { height: [120, 230], weight: [30, 250], waist: [45, 180], shoulder: [25, 70], chest: [60, 180], hip: [60, 190] };
-  for (const [key, range] of Object.entries(bounds)) {
-    const value = input[key as keyof Measurements];
-    if (value === undefined && ['chest', 'hip'].includes(key)) continue;
-    if (typeof value !== 'number' || !Number.isFinite(value) || value < range[0] || value > range[1]) throw new Error('Enter realistic measurements in cm and kg.');
+  for (const field of MEASUREMENT_FIELDS) {
+    const value = input[field.key];
+    if (value === undefined && field.optional) continue;
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < field.min || value > field.max) {
+      throw new Error(measurementMessage(field));
+    }
   }
   if (!['regular', 'relaxed'].includes(input.fit) || !['Tops', 'Layers', 'Bottoms', 'Sets'].includes(category)) throw new Error('Choose a valid fit and category.');
   const notes: string[] = [];

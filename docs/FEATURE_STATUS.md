@@ -6,9 +6,9 @@ Updated 4 November 2026.
 | --- | --- |
 | Size recommender | Product-page form and validated server endpoint; explained general chart estimate, no saved body measurements |
 | Outfit recommendations | Bag suggests up to three complementary, in-stock pieces; sizes and existing cart stock rules apply |
-| Outfit face-off | Public community feed, 2–3 photos, labels/caption, public consent, seven-day vote window, one changeable vote/member, owner deletion |
+| Outfit face-off | Public community feed, 1–3 photos, labels/caption, public consent, seven-day vote window, one changeable vote/member, owner deletion |
 | Product reviews | 1–5 rating, text, up to three photos, own edit/delete, paging, aggregate score and server-verified delivered-purchase badge |
-| Compressed uploads | Browser resize plus authoritative Sharp decode/re-encode; metadata removed; 1200px/250KB WebP; file storage outside MongoDB |
+| Compressed uploads | Browser resize plus authoritative Sharp decode/re-encode; metadata removed; 1200px/250KB WebP; image bytes and owner/attachment metadata stored in MongoDB |
 | User dashboard | Order/review/post/vote totals, profile, order management, password settings, active session controls |
 | Admin dashboard | Existing earnings, orders, customers, coupons and inventory; community moderation added at `/admin/community` |
 | Password hashing | Salted scrypt hashes; current password required for sensitive actions |
@@ -17,10 +17,10 @@ Updated 4 November 2026.
 | Request limits | Overall 300/minute/IP; auth 30/15 minutes; bounded upload, vote, post and review rates; five new posts/account/day |
 | Query injection protection | express-validator, recursively rejected `$`/dot/prototype keys, typed allowlists; request objects never used as raw database filters |
 | Account GET/PUT/PATCH/DELETE | Owner-scoped; PUT name/age; PATCH partial/password; password-confirmed deletion |
-| Account data removal | Remove user, sessions, posts, votes, reviews and photo records/files; cancel pending orders/restock; remove identity/email/address from retained financial snapshots |
+| Account data removal | Remove user, sessions, posts, votes, reviews and database image records; cancel pending orders/restock; remove identity/email/address from retained financial snapshots |
 | In-transit orders | Closure blocked until shipped order is delivered/resolved; the user sees why |
-| Google authentication | Deferred by request. No Neon or OAuth integration is claimed |
+| Google authentication | Neon Managed Better Auth Google sign-in, verified JWT exchange, MongoDB user synchronization and explicit local-account linking; real Google provider redirect verified |
 
 The retired photo-fitting feature's routes, UI, runtime assets, Python service, dependencies, environment settings and feature-specific output archive were removed. Old links resolve to the normal missing-page state. A database cleanup removes its unused product field.
 
-Operational notes: persist `uploads/community/` with backups in deployment. Rate limits are per Node process; multiple instances require a shared store. Public image URLs use no-store and are disabled by database deletion before physical unlink; orphan cleanup retries periodically. Current-user bag/wishlist are cleared on account deletion; copies users downloaded or made public elsewhere cannot be remotely erased. JWT sessions predating this session-registry update require a fresh login.
+Operational notes: Vercel serves the frontend and API together; MongoDB connections are cached per warm instance. Rate limits use shared MongoDB counters, and TTL indexes remove expired counters and unattached uploads without a cron worker. Published images remain in MongoDB. Google-only accounts use a verified Google token for account-deletion confirmation; password accounts retain current-password confirmation. See [DEPLOYMENT.md](DEPLOYMENT.md) for configuration, credential rotation, remaining low-severity SDK advisories and deployment checks.

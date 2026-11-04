@@ -3,12 +3,12 @@ import mongoose from 'mongoose';
 import { body, param, query } from 'express-validator';
 import { UserModel, ProductModel, OrderModel, MediaModel, ReviewModel, FaceoffModel, VoteModel } from './models.ts';
 import { authenticate, adminOnly, csrf, rateLimit, clearSession } from './security.ts';
-import { validate, rejectOperators } from './validation.ts';
+import { validate, rejectOperators, faceoffRules } from './validation.ts';
 import { HttpError, ensure } from './domain.ts';
-import { claimPhotos, mediaDirectory, removeMedia, savePhotos } from './media.ts';
+import { claimPhotos, removeMedia, savePhotos } from './media.ts';
 import { userWrite } from './user-write.ts';
 import { databaseReady } from './database.ts';
-import { recommendSize } from '../shared/sizing.ts';
+import { recommendSize, MEASUREMENT_FIELDS, measurementMessage } from '../shared/sizing.ts';
 const who = (req: any) => req.user;
 const run = (fn: any) => (req: any, res: any, next: any) => Promise.resolve(fn(req, res)).catch(next);
 const idRules = [param('id').isMongoId(), validate];
@@ -21,14 +21,14 @@ const asPublic = (doc: any, user: any) => ({ ...doc, _id: String(doc._id), userI
 
 export const mediaUploadRouter = express.Router();
 mediaUploadRouter.use((_req, _res, next) => databaseReady() ? next() : next(new HttpError(503, 'Database temporarily unavailable.')));
-mediaUploadRouter.post('/', authenticate, csrf, rateLimit(20, 3600000, 'photos'), express.json({ limit: '9mb' }), rejectOperators,
+mediaUploadRouter.post('/', authenticate, csrf, rateLimit(20, 3600000, 'photos'), express.json({ limit: '4mb' }), rejectOperators,
   body('images').isArray({ min: 1, max: 3 }), validate, run(async (req: any, res: any) => {
     res.status(201).json({ images: await savePhotos(who(req)._id, req.body.images) });
   }));
 mediaUploadRouter.get('/:id', param('id').isUUID(), validate, run(async (req: any, res: any) => {
-  const media = await MediaModel.findOne({ mediaId: req.params.id, attachedTo: { $ne: '' } }).lean();
-  ensure(media, 'Image not found.', 404);
-  res.set('Cache-Control', 'no-store'); res.type('webp').sendFile(mediaDirectory + '/' + media.mediaId + '.webp');
+  const media = await MediaModel.findOne({ mediaId: req.params.id, attachedTo: { $ne: '' } }).select('+data');
+  ensure(media && Buffer.isBuffer(media.data), 'Image not found.', 404);
+  res.set('Cache-Control', 'no-store'); res.type(media.contentType).send(media.data);
 }));
 export const communityRouter = express.Router();
 
@@ -44,8 +44,11 @@ communityRouter.get('/users/me/dashboard', authenticate, run(async (req: any, re
   res.json({ orders, reviews, faceoffs, votes, sessionLimit: 3 });
 }));
 communityRouter.post('/size-recommendation', rateLimit(30, 60000, 'sizing'), body('productId').isString().matches(/^[A-Za-z0-9_-]{1,80}$/),
-  ...['height', 'weight', 'waist', 'shoulder'].map(key => body(key).isFloat({ min: 1, max: 250 }).toFloat()),
-  body('chest').optional().isFloat({ min: 60, max: 180 }).toFloat(), body('hip').optional().isFloat({ min: 60, max: 190 }).toFloat(), body('fit').isIn(['regular', 'relaxed']), validate,
+  ...MEASUREMENT_FIELDS.map(field => {
+    const rule = body(field.key);
+    return (field.optional ? rule.optional() : rule).isFloat({ min: field.min, max: field.max }).withMessage(measurementMessage(field)).toFloat();
+  }),
+  body('fit').isIn(['regular', 'relaxed']).withMessage('Choose a regular or roomier fit.'), validate,
   run(async (req: any, res: any) => {
     const p = await ProductModel.findOne({ productId: req.body.productId, active: true }).lean(); ensure(p, 'Product not found.', 404);
     try { res.json(recommendSize(req.body, p.category, p.variants)); } catch (e: any) { throw new HttpError(400, e.message); }
@@ -70,7 +73,7 @@ communityRouter.put('/products/:productId/reviews/me', authenticate, csrf, rateL
     await claimPhotos(req.body.images, userId, target, session);
     removed = (existing?.images || []).filter((p: string) => !req.body.images.includes(p)).map((p: string) => p.split('/').pop()!);
     const verifiedPurchase = !!await OrderModel.exists({ userId, status: 'Delivered', 'items.productId': productId }).session(session);
-    return ReviewModel.findOneAndUpdate({ _id: id }, { $set: { userId, productId, text: req.body.text, rating: req.body.rating, images: req.body.images, verifiedPurchase } }, { session, new: true, upsert: true, runValidators: true });
+    return ReviewModel.findOneAndUpdate({ _id: id }, { $set: { userId, productId, text: req.body.text, rating: req.body.rating, images: req.body.images, verifiedPurchase } }, { session, returnDocument: 'after', upsert: true, runValidators: true });
   });
   await removeMedia(removed); res.json({ message: 'Review saved.', review });
 }));
@@ -94,7 +97,7 @@ communityRouter.get('/faceoffs', ...paging, optionalAuth, run(async (req: any, r
   ]);
   res.json({ posts: posts.map((p: any) => ({ ...asPublic(p, who(req)), counts: p.looks.map((_: any, i: number) => counts.find((c: any) => String(c._id.post) === String(p._id) && c._id.option === i)?.count || 0), myVote: ownVotes.find((v: any) => String(v.faceoffId) === String(p._id))?.option ?? null })), count, page });
 }));
-communityRouter.post('/faceoffs', authenticate, csrf, rateLimit(30, 3600000, 'post-create'), body('title').isString().bail().trim().isLength({ min: 3, max: 140 }), body('caption').optional().isString().isLength({ max: 500 }), body('publicConsent').equals('true').withMessage('Confirm that your photos will be public'), body('looks').isArray({ min: 2, max: 3 }), body('looks.*.image').isString().matches(/^\/api\/media\/[a-f0-9-]{36}$/), body('looks.*.label').isString().bail().trim().isLength({ min: 1, max: 40 }), validate, run(async (req: any, res: any) => {
+communityRouter.post('/faceoffs', authenticate, csrf, rateLimit(30, 3600000, 'post-create'), ...faceoffRules, run(async (req: any, res: any) => {
   const id = new mongoose.Types.ObjectId();
   await userWrite(who(req)._id, async session => {
     ensure(await FaceoffModel.countDocuments({ userId: who(req)._id, createdAt: { $gt: new Date(Date.now() - 86400000) } }).session(session) < 5, 'You can publish up to five face-offs per day.', 429);
@@ -105,7 +108,7 @@ communityRouter.post('/faceoffs', authenticate, csrf, rateLimit(30, 3600000, 'po
 communityRouter.put('/faceoffs/:id/vote', authenticate, csrf, rateLimit(60, 60000, 'vote'), ...idRules, body('option').isInt({ min: 0, max: 2 }).toInt(), validate, run(async (req: any, res: any) => {
   await userWrite(who(req)._id, async session => {
     // Write the post as well, serializing votes against deletion/closing.
-    const post = await FaceoffModel.findOneAndUpdate({ _id: req.params.id, closesAt: { $gt: new Date() } }, { $set: { updatedAt: new Date() } }, { session, new: true });
+    const post = await FaceoffModel.findOneAndUpdate({ _id: req.params.id, closesAt: { $gt: new Date() } }, { $set: { updatedAt: new Date() } }, { session, returnDocument: 'after' });
     ensure(post, 'This vote is closed or the post was deleted.', 409);
     ensure(String(post.userId) !== String(who(req)._id), 'Let the community vote on your own looks.');
     ensure(req.body.option < post.looks.length, 'Choose an existing outfit.');

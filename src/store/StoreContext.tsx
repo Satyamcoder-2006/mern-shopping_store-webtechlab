@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { signOutGoogle } from './neon';
 import { api, setCsrf } from './api';
 import type { Product, Customer, BagItem } from './types';
 type Store = {
@@ -36,7 +37,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     toast('A good choice. Added to your bag.'); return true;
   };
   const toggleWish = (id: string) => setWishlist(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id].slice(0, 100));
-  const logout = async () => { await api('/api/logout', 'POST'); setUser(null); setCsrf(''); setBag([]); setBagOpen(false); toast('You are logged out. See you soon.'); };
+  const logout = async () => { await api('/api/logout', 'POST'); await signOutGoogle().catch(() => {}); setUser(null); setCsrf(''); setBag([]); setBagOpen(false); toast('You are logged out. See you soon.'); };
   return <Context.Provider value={{ products, loading, productError, refreshProducts, user, sessionLoading, setUser, auth, setAuth, bag, setBag, bagOpen, setBagOpen, addToBag, wishlist, toggleWish, toast, logout }}>{children}<div className={`toast ${notice ? 'visible' : ''}`} role="status" aria-live="polite">{notice}</div></Context.Provider>;
 }
 export const useStore = () => useContext(Context);

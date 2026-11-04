@@ -7,9 +7,13 @@ import path from 'node:path';
 import passwordUtils from '../shared/password.cjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 dotenv.config({ path: path.join(root, '.env'), quiet: true });
-const email = (process.env.ADMIN_EMAIL || 'admin@gmail.com').trim().toLowerCase();
+const email = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  console.error('Set ADMIN_EMAIL to the intended administrator email before running admin:setup.');
+  process.exit(1);
+}
 try {
-  await mongoose.connect(process.env.MONGO_URI, { dbName: 'shopDB', serverSelectionTimeoutMS: 15000 });
+  await mongoose.connect(process.env.MONGO_URI, { dbName: process.env.MONGO_DB_NAME || 'shopDB', serverSelectionTimeoutMS: 15000 });
   const users = mongoose.connection.db.collection('users');
   const existing = await users.findOne({ emailId: email });
   if (existing) {

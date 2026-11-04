@@ -38,7 +38,7 @@ Shipping costs **₹99**, with free delivery on orders of **₹1,999 or more**. 
 
 - **Size recommendations:** enter height, weight, waist and shoulder measurements, with optional chest/bust and hip. The app explains its general chart estimate and checks stock separately. Measurements are not saved. See [sizing rules and limitations](docs/SIZING.md).
 - **Product reviews:** add a rating, text and up to three photos; update or delete your own review. Delivered purchases are verified by the server before receiving a badge.
-- **Outfit face-offs:** publish two or three looks for members to vote on. Each member has one changeable vote; voting closes after seven days. Members cannot vote on their own post.
+- **Outfit face-offs:** publish one to three looks for members to vote on. Each member has one changeable vote; voting closes after seven days. Members cannot vote on their own post.
 - **Compressed photos:** uploaded images are resized, stripped of metadata and saved as WebP, with a maximum of 250 KB per image.
 
 ### Dashboards
@@ -68,17 +68,17 @@ Shipping costs **₹99**, with free delivery on orders of **₹1,999 or more**. 
 flowchart LR
     Browser[React storefront] --> Server[Express server]
     Server --> Database[(MongoDB Atlas)]
-    Server --> Uploads[Compressed uploads]
+    Server --> MongoMedia[MongoDB image bytes and metadata]
     Server --> Assets[Local catalogue images]
 ```
 
-One Express process serves the API and frontend. Development uses Vite middleware and live reload; production serves the compiled `dist/` directory.
+Local development uses one Express process with Vite middleware on port 3000. Standalone production serves dist; Vercel hosts the Express API beside Vite static output. See [Vercel deployment and Neon Google login](docs/DEPLOYMENT.md).
 
 ## Getting started
 
 ### 1. Prerequisites
 
-Install **Node.js 22.14 or newer**, npm and Git. Create a MongoDB Atlas cluster and a database user with read/write access to **`shopDB`**.
+Install **Node.js 22.x (22.14 or newer)**, npm and Git. Create a MongoDB Atlas cluster and a database user with read/write access to **`shopDB`**.
 
 Atlas provides the replica-set support required by order transactions. A local MongoDB alternative must also be configured as a replica set; a standalone database does not support these transactions.
 
@@ -126,7 +126,7 @@ node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
 
 In Atlas, add your current public IP under **Security → Network Access** and wait until the entry is active. URL-encode special characters in database passwords when constructing the URI.
 
-The application uses the **`shopDB`** database. Real credentials belong only in `.env`, which is excluded from Git; `.env.example` contains placeholders.
+The application uses **`MONGO_DB_NAME`**, defaulting to **`shopDB`**. Real credentials belong only in `.env`, which is excluded from Git; `.env.example` contains placeholders.
 
 ### 4. Start development
 
@@ -162,7 +162,7 @@ Content moderation is available at **`/admin/community`**. Both the pages and ba
 | `npm start` | Start the complete production server; build first |
 | `npm run lint` | TypeScript checks |
 | `npm test` | Unit tests without Atlas credentials |
-| `npm run test:atlas` | Live API/database verification; build first |
+| `npm run test:atlas` | Live API/database verification against the existing port-3000 server |
 | `npm run db:check` | Credential-safe Atlas diagnostics |
 | `npm run admin:setup` | Provision the configured administrator |
 | `npm run catalog:expand` | Apply the repeatable campus catalogue expansion |
@@ -247,7 +247,7 @@ The **44 illustrative products** comprise eight original entries and 36 campus a
 
 Initialization is tracked in the `migrations` collection:
 
-1. The original clothing migration archives a legacy mixed catalogue in `catalog_archive` before installing the initial clothing selection.
+1. The initial clothing migration adds missing demo product IDs with insert-only updates; existing products and stock are preserved.
 2. The campus migration adds new product IDs and corrects the original demo imagery.
 
 Migrations run once. Restarts do not refill stock, duplicate products or recreate products archived by an administrator. Use a dedicated project database when first setting up the application.
@@ -261,10 +261,10 @@ Orders use transactions for stock reservations, coupon redemption and cancellati
 - **Authorization:** protected operations check the current database user, role and resource ownership.
 - **Validation:** express-validator, typed field allowlists, rejected Mongo operator/prototype keys, origin checks and session-bound CSRF tokens.
 - **Request limits:** overall API limits, authentication brute-force limits and additional upload/post/vote limits. Pricing and stock are always checked by the server.
-- **Photos:** metadata-free WebP files live in `uploads/community/`; MongoDB stores references and metadata. Only published attachments are publicly served. Unused uploads expire after an hour.
+- **Photos:** metadata-free WebP image bytes (up to 250 KB each) live in MongoDB media documents with a unique media ID, owner reference, attachment reference, content type and timestamps. Only published attachments are publicly served. Unused uploads expire after an hour.
 - **Account deletion:** removes the profile, sessions and community data, cancels eligible pending orders, and removes identity/email/address from retained financial snapshots. In-transit orders must be resolved first.
 
-Persist and back up **`uploads/community/`** together with MongoDB when deploying. User uploads are runtime data and must not be committed to Git.
+MongoDB backups include user-uploaded images. On startup, legacy `uploads/community/` images are migrated without changing IDs or URLs; each local file is removed only after the stored database bytes are verified. New uploads never write image files to disk.
 
 Rate limits are per Node process. Multiple server instances require a shared limiter and correctly configured trusted reverse proxies.
 
@@ -287,9 +287,13 @@ npm run test:atlas
 
 The live suite creates uniquely named disposable users, products, orders, coupons, posts, reviews and photos, then cleans them up. It does not leave a shared demo customer behind.
 
+`npm run test:media` checks MongoDB image storage against the existing server on port 3000. It verifies published image bytes and ownership, private drafts, upload atomicity, transaction rollback, deletion and the absence of local image files. Its disposable account and uploads are removed afterward.
+
 GitHub Actions runs the repository audit, type checks, unit tests and production build on pushes and pull requests. It needs no Atlas credentials; live database tests remain a separate command.
 
 ## Production
+
+For a single Vercel deployment, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for exact settings, environment variables, database setup, Google login and verification.
 
 ```bash
 npm ci
@@ -297,7 +301,7 @@ npm run build
 npm start
 ```
 
-`npm start` explicitly enables production mode and serves the complete application. Configure `.env` on the host, enable HTTPS, set `COOKIE_SECURE=true` for HTTPS cookies and keep uploads on persistent storage.
+`npm start` explicitly enables production mode and serves the complete application. Configure `.env` on the host, enable HTTPS, set `COOKIE_SECURE=true` for HTTPS cookies and back up MongoDB, including its media collection.
 
 ## Troubleshooting
 
@@ -309,7 +313,7 @@ npm start
 | Frontend changes appear but API changes do not | Use `npm run dev` or restart an older manually started process |
 | Production build is missing | Run `npm run build` before `npm start` |
 | A fresh clone has no administrator | Set `ADMIN_EMAIL` and run `npm run admin:setup` |
-| Uploads disappear after redeployment | Persist/restore the uploads directory alongside its database references |
+| Uploaded images are missing | Restore the MongoDB media collection; for legacy installations, include existing local uploads on the first startup so they can migrate |
 | A session stops working | It may have expired, been revoked or been replaced after another login |
 
 TLS certificate verification stays enabled. Unavailable database connections are retried every 15 seconds while the storefront remains accessible.

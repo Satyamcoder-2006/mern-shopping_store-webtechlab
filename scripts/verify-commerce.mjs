@@ -1,7 +1,6 @@
 import sharp from 'sharp';
 // Live Atlas checks use only uniquely named disposable records, removed in finally.
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,12 +33,9 @@ const signup = async (client, kind) => {
   return data.user;
 };
 try {
-  await mongoose.connect(process.env.MONGO_URI, { dbName: 'shopDB', serverSelectionTimeoutMS: 15000 }); db = mongoose.connection.db;
+  await mongoose.connect(process.env.MONGO_URI, { dbName: process.env.MONGO_DB_NAME || 'shopDB', serverSelectionTimeoutMS: 15000 }); db = mongoose.connection.db;
   await db.command({ ping: 1 });
-  child = spawn(process.execPath, ['--experimental-strip-types', 'server.ts'], { cwd: root, env: { ...process.env, PORT: process.env.VERIFY_PORT || '3120', NODE_ENV: 'production' }, stdio: ['ignore', 'pipe', 'pipe'] });
-  child.stdout.on('data', b => { logs += b; }); child.stderr.on('data', b => { logs += b; });
-  for (let i = 0; i < 150; i++) { const match = logs.match(/Server listening on port (\d+)/); if (match) { port = Number(match[1]); break; } if (child.exitCode !== null) throw new Error('Verification server failed to start.'); await new Promise(r => setTimeout(r, 200)); }
-  assert.ok(port, 'Verification server did not start.');
+  port = 3000; // Verify the shared local server; never start a second website.
   let databaseAvailable = false;
   for (let i = 0; i < 100; i++) {
     const health = await fetch(`http://127.0.0.1:${port}/api/health`);
@@ -86,7 +82,7 @@ try {
   expect(await customer.request('POST', '/api/media', { images: ['data:image/png;base64,YmFk'] }), 400, 'corrupt photo rejected as validation error');
   const media = expect(await customer.request('POST', '/api/media', { images: photoInputs }), 201, 'compressed photos upload');
   const mediaDocs = await db.collection('media').find({ ownerId: new mongoose.Types.ObjectId(u.id) }).toArray();
-  assert.ok(mediaDocs.length === 2 && mediaDocs.every(m => m.bytes <= 250 * 1024 && !m.data)); checks++;
+  assert.ok(mediaDocs.length === 2 && mediaDocs.every(m => m.bytes <= 250 * 1024 && m.data?.length() === m.bytes && m.contentType === 'image/webp')); checks++;
   const draftImage = await fetch(`http://127.0.0.1:${port}${media.images[0]}`); assert.equal(draftImage.status, 404); checks++;
   const postBody = { title: 'Disposable outfit vote', caption: 'Verification only', publicConsent: true, looks: media.images.map((image, i) => ({ image, label: 'Look ' + (i + 1) })) };
   expect(await customer.request('POST', '/api/faceoffs', { ...postBody, publicConsent: false }), 400, 'public photo consent enforced');
@@ -209,9 +205,6 @@ try {
       await db.collection('votes').deleteMany({ $or: [{ userId: { $in: ids } }, { faceoffId: { $in: posts.map(p => p._id) } }] });
       await db.collection('faceoffs').deleteMany({ userId: { $in: ids } });
       await db.collection('reviews').deleteMany({ userId: { $in: ids } });
-      const photos = await db.collection('media').find({ ownerId: { $in: ids } }).toArray();
-      const { unlink } = await import('node:fs/promises');
-      for (const photo of photos) await unlink(path.join(root, 'uploads/community', photo.mediaId + '.webp')).catch(() => {});
       await db.collection('media').deleteMany({ ownerId: { $in: ids } });
     }
     if (productIds.length) await db.collection('products').deleteMany({ productId: { $in: productIds } });

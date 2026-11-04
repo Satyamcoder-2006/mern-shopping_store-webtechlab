@@ -2,9 +2,8 @@ import mongoose from 'mongoose';
 import { randomUUID } from 'node:crypto';
 import { UserModel, OrderModel, ProductModel, CouponModel, MediaModel, ReviewModel, FaceoffModel, VoteModel } from './models.ts';
 import { ensure } from './domain.ts';
-import { removeMedia } from './media.ts';
 export async function eraseAccount(userId: any) {
-  const session = await mongoose.startSession(); let photos: string[] = [];
+  const session = await mongoose.startSession();
   try {
     await session.withTransaction(async () => {
       const user = await UserModel.findOneAndUpdate({ _id: userId, role: { $ne: 'admin' } }, { $inc: { writeRevision: 1 } }, { session });
@@ -28,10 +27,8 @@ export async function eraseAccount(userId: any) {
       await VoteModel.deleteMany({ $or: [{ userId }, { faceoffId: { $in: owned.map(p => p._id) } }] }, { session });
       await FaceoffModel.deleteMany({ userId }, { session });
       await ReviewModel.deleteMany({ userId }, { session });
-      const media = await MediaModel.find({ ownerId: userId }).select('mediaId').session(session).lean(); photos = media.map((p: any) => p.mediaId);
       await MediaModel.deleteMany({ ownerId: userId }, { session });
       await UserModel.deleteOne({ _id: userId }, { session });
     });
   } finally { await session.endSession(); }
-  await removeMedia(photos); // DB no longer serves these URLs, even if unlink needs retry.
 }

@@ -8,7 +8,7 @@
   transition: color 225ms ease, background-color 225ms ease, border-color 225ms ease,
     box-shadow 225ms ease, transform 225ms ease, opacity 225ms ease;
 }
-a:focus-visible, button:focus-visible { outline-color: var(--olive); outline-offset: 3px; }
+:is(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--olive); outline-offset: 3px; }
 [data-reveal] { transition: opacity 500ms ease-out var(--reveal-delay, 0ms), transform 500ms ease-out var(--reveal-delay, 0ms); }
 [data-reveal="pending"] { opacity: 0; transform: translateY(14px); }
 .site-header { transition: box-shadow 225ms ease, border-color 225ms ease; }
