@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 import { randomUUID } from 'node:crypto';
 import { UserModel, ProductModel, OrderModel, CouponModel } from './models.ts';
 import { HttpError, ensure, email, password, text, number, productInput, couponInput } from './domain.ts';
-import { authenticate, adminOnly, csrf, csrfFor, clearSession, issueSession, publicUser, rateLimit, sameOrigin, securityHeaders } from './security.ts';
+import { authenticate, optionalAuthenticate, adminOnly, csrf, csrfFor, clearSession, issueSession, publicUser, rateLimit, sameOrigin, securityHeaders } from './security.ts';
 import { placeOrder, quoteCart, changeOrderStatus } from './commerce.ts';
 import passwordUtils from '../shared/password.cjs';
 import { databaseReady, connectDatabase } from './database.ts';
@@ -74,7 +74,7 @@ app.post('/api/auth/neon', authLimit, route(async (req, res) => {
   const user = await syncNeonUser(identity, current ? String(current._id) : undefined);
   res.json({ message: 'Welcome to FORME.', ...await issueSession(res, user, current ? (req as any).sessionId : undefined) });
 }));
-app.get('/api/session', authenticate, route(async (req, res) => res.json({ user: publicUser(who(req)), csrfToken: csrfFor((req as any).sessionToken) })));
+app.get('/api/session', optionalAuthenticate, route(async (req, res) => res.json(who(req) ? { user: publicUser(who(req)), csrfToken: csrfFor((req as any).sessionToken) } : { user: null, csrfToken: '' })));
 app.post('/api/logout', authenticate, csrf, route(async (req, res) => {
   await UserModel.updateOne({ _id: who(req)._id }, { $inc: { tokenVersion: 1 }, $set: { sessions: [] } });
   clearSession(res); res.json({ message: 'You are logged out.' });

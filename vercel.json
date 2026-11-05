@@ -5,11 +5,15 @@
   "installCommand": "npm ci",
   "outputDirectory": "dist",
   "functions": {
-    "api/**/*.ts": {
+    "api/index.ts": {
       "maxDuration": 30
     }
   },
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index"
+    },
     {
       "source": "/((?!api(?:/|$)).*)",
       "destination": "/index.html"

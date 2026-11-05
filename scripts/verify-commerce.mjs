@@ -113,12 +113,14 @@ try {
   expect(await customer.request('GET', '/api/users/me/dashboard'), 200, 'member dashboard');
   const loginSessions = [];
   for (let i = 0; i < 4; i++) { const client = new Client(); expect(await client.request('POST', '/api/login', { emailId: other.emailId, password: pass }), 200, 'new session login'); loginSessions.push(client); }
-  expect(await loginSessions[0].request('GET', '/api/session'), 401, 'fourth login ends oldest session');
+  assert.equal(expect(await loginSessions[0].request('GET', '/api/session'), 200, 'fourth login ends oldest session').user, null);
+  expect(await loginSessions[0].request('GET', '/api/orders'), 401, 'protected route still rejects revoked session');
   stranger.cookie = loginSessions[3].cookie; stranger.csrf = loginSessions[3].csrf;
   const sessions = expect(await stranger.request('GET', '/api/users/me/sessions'), 200, 'session listing'); assert.equal(sessions.length, 3); assert.equal(sessions.filter(s => s.current).length, 1); checks++;
   const revoke = sessions.find(s => !s.current);
   expect(await stranger.request('DELETE', `/api/users/me/sessions/${revoke.id}`), 200, 'session revoked');
-  expect(await loginSessions[1].request('GET', '/api/session'), 401, 'revoked session cannot authenticate');
+  assert.equal(expect(await loginSessions[1].request('GET', '/api/session'), 200, 'revoked session cannot authenticate').user, null);
+  expect(await loginSessions[1].request('GET', '/api/orders'), 401, 'protected route still rejects revoked session');
   expect(await admin.request('PUT', `/api/admin/products/${p.productId}`, { ...product, revision: 999 }), 409, 'stale inventory rejected');
   expect(await customer.request('PUT', `/api/admin/products/${p.productId}`, { ...product, revision: 0 }), 403, 'customer inventory mutation denied');
   const coupon = expect(await admin.request('POST', '/api/admin/coupons', { code: couponCode, type: 'percent', value: 10, minSpend: 1000, maxDiscount: 200, usageLimit: 1, expiresAt: new Date(Date.now() + 86400000).toISOString() }), 201, 'coupon creation');
@@ -174,7 +176,8 @@ try {
   const oldSession = new Client(); oldSession.cookie = customer.cookie; oldSession.csrf = customer.csrf;
   expect(await customer.request('PATCH', '/api/users/me', { password: 'new-secure-pass', currentPassword: 'incorrect' }), 403, 'old password required');
   expect(await customer.request('PATCH', '/api/users/me', { password: 'new-secure-pass', currentPassword: pass }), 200, 'password update');
-  expect(await oldSession.request('GET', '/api/session'), 401, 'old session revoked');
+  assert.equal(expect(await oldSession.request('GET', '/api/session'), 200, 'old session revoked').user, null);
+  expect(await oldSession.request('GET', '/api/orders'), 401, 'protected route still rejects revoked session');
   expect(await customer.request('DELETE', '/api/users/me', { currentPassword: 'incorrect' }), 403, 'deletion password required');
   expect(await customer.request('DELETE', '/api/users/me', { currentPassword: 'new-secure-pass' }), 200, 'account deletion');
   expect(await oldSession.request('GET', '/api/orders'), 401, 'deleted account session denied');

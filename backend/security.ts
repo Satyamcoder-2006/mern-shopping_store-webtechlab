@@ -32,6 +32,16 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     next();
   } catch { next(new HttpError(401, 'Your session has expired. Please log in again.')); }
 }
+// Public session discovery is allowed to return an anonymous user.
+// Protected endpoints continue to use authenticate and return 401.
+export function optionalAuthenticate(req: Request, res: Response, next: NextFunction) {
+  const hasSession = req.headers.cookie?.split(';').some(cookie => cookie.trim().startsWith(COOKIE + '='));
+  if (!hasSession) { next(); return; }
+  return authenticate(req, res, error => {
+    if (error) clearSession(res);
+    next();
+  });
+}
 export function csrf(req: Request, _res: Response, next: NextFunction) {
   const provided = req.get('X-CSRF-Token') || '';
   const expected = csrfFor((req as any).sessionToken || '');

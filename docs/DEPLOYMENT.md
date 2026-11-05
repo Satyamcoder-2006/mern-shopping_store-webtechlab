@@ -1,6 +1,6 @@
 # Deploy FORME to Vercel
 
-One Vercel project serves the Vite frontend and the Express API through `api/[...path].ts`. MongoDB Atlas holds all store data and uploaded image bytes. Neon Auth is optional and handles Google identity. Checkout remains cash on delivery; PayU is not enabled.
+One Vercel project serves the Vite frontend and the Express API through `api/index.ts`. MongoDB Atlas holds all store data and uploaded image bytes. Neon Auth is optional and handles Google identity. Checkout remains cash on delivery; PayU is not enabled.
 
 ## Before publishing
 
@@ -48,7 +48,7 @@ Import the repository into one Vercel project. Select the repository root contai
 | Development command, if requested | `npm run dev` |
 | Start command | None; Vercel invokes the API function |
 
-The supplied `vercel.json` sets the build options, a 30-second API duration and SPA routing excluding `/api`. Do not replace this with a rewrite that sends API requests to `index.html`.
+The supplied `vercel.json` sets the build options, a 30-second API duration, an explicit `/api/:path*` rewrite to `/api/index`, and SPA routing excluding `/api`. Do not replace this with a rewrite that sends API requests to `index.html`.
 
 If `npm ci` reports missing `@emnapi/core` or `@emnapi/wasi-threads`, use the repaired lockfile from this repository. Commit and push `package-lock.json`, then deploy that new commit. Redeploying an older commit will reuse its incomplete lockfile. Keep the install command as `npm ci`; peer-dependency warnings are separate from the fatal lockfile validation error. Regenerate dependency locks in a clean directory and validate a real Linux clean install before deploying.
 
@@ -109,3 +109,12 @@ Live suites create uniquely identified disposable records and remove them afterw
 - PayU remains a separate step: it needs server-side payment initiation, authenticated callback/webhook verification, idempotency and reconciliation before changing COD behavior.
 
 References: [Vite/API functions on Vercel](https://vercel.com/docs/frameworks/frontend/vite), [Vercel payload limits](https://vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions), [Neon JWT verification](https://neon.com/docs/auth/guides/plugins/jwt), [Neon SDK](https://github.com/neondatabase/neon-js/tree/main/packages/auth), [Atlas Network Access](https://www.mongodb.com/docs/atlas/security/ip-access-list/).
+
+
+## API routing troubleshooting
+
+If every simple API route returns HTTP 400 with `Invalid request fields.`, the old bracket-named function is forwarding Vercel routing metadata into Express query validation. If nested API URLs return Vercel `NOT_FOUND`, they are not reaching Express at all. Deploy the replacement `api/index.ts`, new `backend/vercel.ts` adapter, updated `vercel.json` and the other changes together; remove `api/[...path].ts`. Do not keep both entries.
+
+The adapter discards the platform query object so Express reparses the original request URL; user-supplied operators/dotted keys are still rejected. The explicit API rewrite handles product detail, media and Google exchange routes as well as top-level endpoints. After redeploying the latest commit, `/api/health` should return 200 and `/api/products` should return a JSON array. HTTP 503 then indicates a separate database connection/environment issue to inspect in Vercel function logs and Atlas Network Access.
+
+Anonymous `/api/session` requests now return HTTP 200 with `user: null`; protected routes still return 401. The public Neon Auth URL is expected to appear in browser network requests and is not a management API key. A Neon `INVALID_CALLBACKURL` response means the exact application origin needs to be trusted in Neon. Production and dev-tunnel origins are separate entries.

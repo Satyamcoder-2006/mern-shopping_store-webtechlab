@@ -18,6 +18,6 @@ export async function api<T = any>(url: string, method = 'GET', body?: unknown):
       : data.message || 'Something went wrong. Please try again.';
     throw new ApiError(message, response.status);
   }
-  if (data.csrfToken) setCsrf(data.csrfToken);
+  if (typeof data.csrfToken === 'string') setCsrf(data.csrfToken);
   return data;
 }
