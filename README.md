@@ -80,7 +80,7 @@ Local development uses one Express process with Vite middleware on port 3000. St
 
 Install **Node.js 22.x (22.14 or newer)**, npm and Git. Create a MongoDB Atlas cluster and a database user with read/write access to **`shopDB`**.
 
-Atlas provides the replica-set support required by order transactions. A local MongoDB alternative must also be configured as a replica set; a standalone database does not support these transactions.
+Atlas gives the replica-set support required by order transactions. A local MongoDB alternative must also be configured as a replica set; a standalone database does not support these transactions.
 
 ### 2. Clone and install
 
