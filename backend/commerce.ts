@@ -94,7 +94,10 @@ export async function changeOrderStatus(orderId: string, status: string, user: a
         if (order.couponCode) await CouponModel.updateOne({ code: order.couponCode }, { $inc: { usedCount: -1 }, $pull: { usedBy: String(order.userId) } }, { session });
       }
       order.status = status;
-      if (status === 'Delivered') order.paymentStatus = 'collected';
+      if (status === 'Delivered') {
+        order.paymentStatus = 'collected';
+        order.deliveredAt = new Date();
+      }
       await order.save({ session }); result = order;
     });
     return result;

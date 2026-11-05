@@ -51,6 +51,7 @@ const orderSchema = new Schema({
   couponCode: { type: String, default: '' },
   paymentMethod: { type: String, default: 'cod', enum: ['cod'] },
   paymentStatus: { type: String, default: 'unpaid', enum: ['unpaid', 'collected'] },
+  deliveredAt: Date,
   status: { type: String, default: 'Pending', enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] },
 }, { timestamps: true });
 orderSchema.index({ userId: 1, requestId: 1 }, { unique: true });

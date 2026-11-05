@@ -119,16 +119,37 @@ app.patch('/api/orders/:id/cancel', authenticate, csrf, route(async (req, res) =
 
 app.use('/api/admin', authenticate, adminOnly);
 app.get('/api/admin/dashboard', route(async (_req, res) => {
-  const [earnings, booked, totalOrders, customers, lowStock, products, recentOrders, trend] = await Promise.all([
+  const dayLength = 86_400_000;
+  const indiaNow = Date.now() + 330 * 60_000;
+  const days = Array.from({ length: 7 }, (_, i) => new Date(indiaNow - (6 - i) * dayLength).toISOString().slice(0, 10));
+  const weekStart = new Date(days[0] + 'T00:00:00+05:30');
+  const byDay = (date: string | { $ifNull: string[] }) => ({
+    $group: { _id: { $dateToString: { format: '%Y-%m-%d', date, timezone: 'Asia/Kolkata' } }, total: { $sum: '$total' } },
+  });
+  const [earnings, booked, totalOrders, customers, lowStock, products, recentOrders, trend, bookedTrend] = await Promise.all([
     OrderModel.aggregate([{ $match: { status: 'Delivered', paymentStatus: 'collected' } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
     OrderModel.aggregate([{ $match: { status: { $ne: 'Cancelled' } } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
     OrderModel.countDocuments(), UserModel.countDocuments({ role: { $ne: 'admin' } }),
     ProductModel.find({ active: true, quantity: { $lte: 5 } }).lean(), ProductModel.countDocuments({ active: true }),
     OrderModel.find().sort({ createdAt: -1 }).limit(6).lean(),
-    OrderModel.aggregate([{ $match: { status: 'Delivered', paymentStatus: 'collected', updatedAt: { $gte: new Date(Date.now() - 7 * 86400000) } } },
-      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$updatedAt', timezone: 'Asia/Kolkata' } }, total: { $sum: '$total' } } }, { $sort: { _id: 1 } }]),
+    OrderModel.aggregate([
+      { $match: { status: 'Delivered', paymentStatus: 'collected', $or: [
+        { deliveredAt: { $gte: weekStart } },
+        { deliveredAt: null, updatedAt: { $gte: weekStart } },
+      ] } },
+      byDay({ $ifNull: ['$deliveredAt', '$updatedAt'] }), { $sort: { _id: 1 } },
+    ]),
+    OrderModel.aggregate([
+      { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: weekStart } } },
+      byDay('$createdAt'),
+    ]),
   ]);
-  res.json({ earnings: earnings[0]?.total || 0, booked: booked[0]?.total || 0, totalOrders, customers, lowStock, products, recentOrders, trend });
+  const sales = days.map(day => ({
+    day,
+    booked: bookedTrend.find(entry => entry._id === day)?.total ?? 0,
+    collected: trend.find(entry => entry._id === day)?.total ?? 0,
+  }));
+  res.json({ earnings: earnings[0]?.total || 0, booked: booked[0]?.total || 0, totalOrders, customers, lowStock, products, recentOrders, trend, sales });
 }));
 app.get('/api/admin/products', route(async (_req, res) => res.json(await ProductModel.find().sort({ createdAt: -1 }).limit(500).lean())));
 app.post('/api/admin/products', csrf, route(async (req, res) => {

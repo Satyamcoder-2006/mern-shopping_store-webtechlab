@@ -17,10 +17,13 @@ export async function eraseAccount(userId: any) {
       }
       // Keep non-identifying financial/product snapshots, remove all customer PII
       // and links. Shipped orders are blocked above to preserve fulfilment.
-      const retained = await OrderModel.find({ userId }).select('_id').session(session).lean();
+      const retained = await OrderModel.find({ userId }).select('_id status deliveredAt updatedAt').session(session).lean();
       for (const order of retained) await OrderModel.updateOne({ _id: order._id }, {
         $unset: { emailId: 1, address: 1 },
-        $set: { userId: new mongoose.Types.ObjectId(), requestId: 'anon-' + randomUUID(), customerName: 'Deleted customer' },
+        $set: {
+          userId: new mongoose.Types.ObjectId(), requestId: 'anon-' + randomUUID(), customerName: 'Deleted customer',
+          ...(order.status === 'Delivered' && !order.deliveredAt ? { deliveredAt: order.updatedAt } : {}),
+        },
       }, { session });
       await CouponModel.updateMany({ usedBy: String(userId) }, { $pull: { usedBy: String(userId) } }, { session });
       const owned = await FaceoffModel.find({ userId }).select('_id').session(session).lean();

@@ -57,8 +57,8 @@ field = OxmlElement('w:fldSimple'); field.set(qn('w:instr'), 'PAGE'); footer._p.
 def p(text, style=None): return doc.add_paragraph(text, style)
 def h(text): doc.add_heading(text, 2)
 def page(title):
-    doc.add_page_break()
-    doc.add_heading(title, 1)
+    heading=doc.add_heading(title, 1)
+    heading.paragraph_format.page_break_before=True
 def source(text): p('Code reference  ' + text, 'Source note')
 def bullets(items):
     for x in items: p(x, 'List Bullet')
@@ -131,7 +131,6 @@ arrow((700,115),(840,115))
 arrow((360,205),(360,320),((390,245),'JSON over same origin HTTP'))
 arrow((700,420),(840,420),((714,376),'Queries'))
 arrow((220,655),(220,530),((247,578),'JWT identity exchange'))
-arrow((1150,655),(1150,570),((1175,580),'Used by app code'))
 im.save(WORK/'architecture.png')
 
 p('FORME Project Architecture and Feature Guide','Title')
@@ -200,7 +199,7 @@ source('src/main.tsx; src/App.tsx; src/store/*')
 
 page('4 Frontend state management')
 p('FORME uses React Context and hooks for shared state. StoreProvider owns the active user, product list, bag, wishlist and interface flags. useStore exposes the same store to the header, catalogue, checkout and dashboards. This avoids passing those values through every intermediate component. Redux and Zustand are not used.')
-h('Three kinds of state')
+h('Where state lives')
 table(['State','Where it lives','Examples'],[
 ('Shared application state','React Context with useState','User, products, bag, wishlist, notifications.'),
 ('Page state','Local component hooks','Search text, selected size, form fields, current tab, loading state.'),
@@ -397,7 +396,8 @@ for row in doc.tables[-1].rows:
     for cell in row.cells:
         for para in cell.paragraphs:
             para.paragraph_format.space_after=Pt(0)
-            for run in para.runs: run.font.size=Pt(8.5)
+            for run in para.runs:
+                run.font.size=Pt(8.5)
         margins=cell._tc.get_or_add_tcPr().find(qn('w:tcMar'))
         for side in ['top','bottom']:
             margins.find(qn('w:'+side)).set(qn('w:w'),'40')
@@ -555,11 +555,15 @@ steps(['Introduce FORME as a MERN clothing store that combines commerce, fit gui
 h('Read the code in this order')
 p('Start with src/App.tsx and src/store/StoreContext.tsx to understand page composition and shared state. Follow src/store/api.ts into backend/app.ts to see the request boundary. Read backend/models.ts before backend/commerce.ts so the transaction fields are familiar. Then read backend/security.ts and backend/neon-auth.ts for authentication, followed by backend/community.ts and backend/media.ts for social content. Finish with shared/sizing.ts and shared/outfits.ts for the two recommendation algorithms.')
 h('Useful answers for a team discussion')
-p('Why MERN? React provides the interface, Express and Node handle the API, and MongoDB stores the application documents. TypeScript is used across most frontend, backend and shared code. Why JWT plus database sessions? JWT verifies the signed request identity, while database records allow immediate revocation and current role checks. Why transactions? Stock, coupon use and order creation must either succeed together or be rolled back.')
-p('Are suggestions AI? They are explicit rules with explainable results. Is Neon the shopping database? No; Neon handles optional Google identity and MongoDB stores the shop. Is payment online? No; COD is the implemented payment flow. Are bag and wishlist account-synchronized? They persist on the current browser device.')
+p('MERN combines React for the interface, Express and Node for the API, and MongoDB for application documents. TypeScript is used across most frontend, backend and shared code. JWT verifies the signed request identity, while database session records allow immediate revocation and current role checks. Transactions ensure that stock, coupon use and order creation succeed together or are rolled back.')
+p('The recommendations use explicit rules with explainable results. Neon handles optional Google identity, while MongoDB stores the shop. COD is the implemented payment flow. Bag and wishlist entries persist on the current browser device, so signing in on a different device does not automatically restore them.')
 h('Reference documents in the repository')
 p('docs/FEATURE_STATUS.md summarizes feature status; docs/SIZING.md explains chart assumptions; docs/DEPLOYMENT.md covers hosting and Google setup; docs/CATALOG_IMAGE_SOURCES.json records catalogue image origins. README.md is the general introduction, but current code and the focused guides should resolve older statements about Google login, rate limits and startup behavior.')
 
+for element in [doc.styles['Title'].element, doc.styles['Subtitle'].element,
+                *[para._p for para in doc.paragraphs if para.style.name in ['Title','Subtitle']]]:
+    for border in list(element.iter(qn('w:pBdr'))):
+        border.getparent().remove(border)
 doc.save(OUT)
 print(str(OUT))
 print('Paragraphs',len(doc.paragraphs),'Tables',len(doc.tables))

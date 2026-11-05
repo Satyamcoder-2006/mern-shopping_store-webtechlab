@@ -1,5 +1,16 @@
 import React, { useRef, useState } from 'react';
 import { api } from './api';
+import { Picture } from './ui';
+
+export function ReviewPhotos({ images, description }: { images: string[]; description: string }) {
+  if (!images.length) return null;
+  return <div className="review-gallery">{images.map((url, index) =>
+    <a key={url} href={url} target="_blank" rel="noreferrer">
+      <Picture src={url} alt={description + ' ' + (index + 1)} />
+    </a>
+  )}</div>;
+}
+
 export default function Photos({ images, setImages, max = 3, onBusyChange }: { images: string[]; setImages: (images: string[]) => void; max?: number; onBusyChange?: (busy: boolean) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [previews, setPreviews] = useState<Record<string, string>>({});
