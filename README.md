@@ -149,7 +149,7 @@ npm run admin:setup
 - An existing account is promoted and keeps its current password.
 - Otherwise, the script creates an administrator and saves a generated password in the private **`.admin-credentials.txt`** file.
 
-Log in through the storefront and open **`/admin`**. Change a generated password from **Account → Account security**. Public registration always creates a customer; admin credentials are never embedded in React.
+Log in to the storefront and open **`/admin`**. Change a generated password from **Account → Account security**. Public registration always creates a customer; admin credentials are never embedded in React.
 
 Content moderation is available at **`/admin/community`**. Both the pages and backend routes enforce the administrator role.
 
